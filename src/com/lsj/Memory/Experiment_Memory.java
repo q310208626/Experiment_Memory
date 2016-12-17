@@ -1,7 +1,9 @@
 package com.lsj.Memory;
 
+import com.lsj.Method.BFMethod;
 import com.lsj.Method.FFMethod;
 import com.lsj.Method.NFMethod;
+import com.lsj.Method.WFMethod;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -247,9 +249,9 @@ public class Experiment_Memory extends JFrame {
                 } else if (NFButton.isSelected()) {
                     new NFMethod(listenerMemoryList, listenerProgramList, memoryTable, undoProgramTable, didProgramTable).start();
                 } else if (BFButton.isSelected()) {
-
+                    new BFMethod(listenerMemoryList, listenerProgramList, memoryTable, undoProgramTable, didProgramTable).start();
                 } else if (WFButton.isSelected()) {
-
+                    new WFMethod(listenerMemoryList, listenerProgramList, memoryTable, undoProgramTable, didProgramTable).start();
                 }
             }
         }

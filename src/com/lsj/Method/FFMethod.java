@@ -71,9 +71,10 @@ public class FFMethod extends Thread{
                                 }
 
                                 programList.remove(i);
-                                i--;
+
                                 didprogramList.add(program);
                                 dropList.add(i);
+                                i--;
                                 System.out.print("dropList.size---"+dropList.size()+"\n");
                                 //programList.remove(i);
                                 try {

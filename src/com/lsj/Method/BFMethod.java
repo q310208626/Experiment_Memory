@@ -24,7 +24,7 @@ public class BFMethod extends Thread {
     String[] didProgramColumName = {"编号", "程序大小"};
     List dropList = new ArrayList<>();
     int suitMinMemort=200;
-    int suitMinMemortindex;
+    int suitMinMemortindex=-1;
 
     public BFMethod(LinkedList<Memory> memoryList, List<Program> programList, JTable memoryTable, JTable undoProgramTable, JTable didProgramTable) {
         this.memoryList = memoryList;
@@ -44,51 +44,57 @@ public class BFMethod extends Thread {
         List<Program> didprogramList = new ArrayList<Program>();
         java.util.Timer timer = new java.util.Timer();
         while (programList.size() > 0) {
-            System.out.print("programlistAllonce------ ");
+            System.out.print("programlistAllonce------ \n");
             for (int i = 0; i < programList.size(); i++) {
                 System.out.print(i + " ");
                 Program program = programList.get(i);
+                suitMinMemortindex=-1;
+                suitMinMemort=200;
                 for (int j = 0; j < memoryList.size(); j++) {
-
+                    System.out.print("memory:"+j+"\n");
                     Memory memory = memoryList.get(j);
                     if (memory.getState() == 0) {
                         if (memory.getSize() > program.getSize()) {
+                            //查找最小合适内存
                             if(suitMinMemort>memory.getSize()){
                                 suitMinMemort=memory.getSize();
                                 suitMinMemortindex=j;
                             }
-                            //内存大小减去程序大小如果大于最小不可分内存，则切割一块内存出来
-                            if (memory.getSize() - program.getSize() > minMemorySize) {
-                                Memory newMemory = new Memory();
-                                newMemory.setStart(memory.getStart() + program.getSize());
-                                newMemory.setSize(memory.getSize() - program.getSize());
-                                newMemory.setState(0);
-                                memory.setSize(program.getSize());
-                                memory.setState(program.getId());
-                                memoryList.add(j + 1, newMemory);
-                            } else {
-                                memory.setState(program.getId());
-                            }
 
-                            programList.remove(i);
-                            i--;
-                            didprogramList.add(program);
-                            dropList.add(i);
-                            System.out.print("dropList.size---" + dropList.size() + "\n");
-                            //programList.remove(i);
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            updateMemoryTable();
-                            updateUndoProgramTable(programList, undoProgramTable);
-                            updateUndoProgramTable(didprogramList, didProgramTable);
-
-
-                            break;
                         }
                     }
+                }
+                //内存大小减去程序大小如果大于最小不可分内存，则切割一块内存出来
+                if(suitMinMemortindex!=-1){
+                    System.out.print("suitMinMemortindex"+suitMinMemortindex+"\n");
+                    Memory memory=memoryList.get(suitMinMemortindex);
+                    if (memory.getSize() - program.getSize() > minMemorySize) {
+                        Memory newMemory = new Memory();
+                        newMemory.setStart(memory.getStart() + program.getSize());
+                        newMemory.setSize(memory.getSize() - program.getSize());
+                        newMemory.setState(0);
+                        memory.setSize(program.getSize());
+                        memory.setState(program.getId());
+                        memoryList.add(suitMinMemortindex + 1, newMemory);
+                    } else {
+                        memory.setState(program.getId());
+                    }
+
+                    programList.remove(i);
+                    didprogramList.add(program);
+                    dropList.add(i);
+                    i--;
+                    System.out.print("dropList.size---" + dropList.size() + "\n");
+                    //programList.remove(i);
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    updateMemoryTable();
+                    updateUndoProgramTable(programList, undoProgramTable);
+                    updateUndoProgramTable(didprogramList, didProgramTable);
+
                 }
 
             }

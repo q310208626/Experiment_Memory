@@ -7,11 +7,12 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import java.util.*;
+import java.util.Timer;
 
 /**
  * Created by hdmi on 16-12-17.
  */
-public class NFMethod extends Thread {
+public class WFMethod extends Thread {
     int minMemorySize = 20;
     LinkedList<Memory> memoryList;
     List<Program> programList;
@@ -23,9 +24,10 @@ public class NFMethod extends Thread {
     String[] undoProgramColumName = {"编号", "程序大小"};
     String[] didProgramColumName = {"编号", "程序大小"};
     List dropList = new ArrayList<>();
-    int memoryIndex=0;
+    int suitMaxMemort=0;
+    int suitMaxMemortindex=-1;
 
-    public NFMethod(LinkedList<Memory> memoryList, List<Program> programList, JTable memoryTable, JTable undoProgramTable, JTable didProgramTable) {
+    public WFMethod(LinkedList<Memory> memoryList, List<Program> programList, JTable memoryTable, JTable undoProgramTable, JTable didProgramTable) {
         this.memoryList = memoryList;
         this.programList = programList;
         this.memoryTable = memoryTable;
@@ -39,55 +41,61 @@ public class NFMethod extends Thread {
         super.run();
     }
 
-    public void methodRun() {
-
-
+    public void methodRun(){
         List<Program> didprogramList = new ArrayList<Program>();
-        java.util.Timer timer = new java.util.Timer();
+        Timer timer = new Timer();
         while (programList.size() > 0) {
-            System.out.print("programlistAllonce------ ");
+            System.out.print("programlistAllonce------ \n");
             for (int i = 0; i < programList.size(); i++) {
                 System.out.print(i + " ");
                 Program program = programList.get(i);
-                for (;memoryIndex<memoryList.size();memoryIndex=(memoryIndex+1)%(memoryList.size()+1)) {
-                    System.out.print("memoryndex："+memoryIndex+"\n");
-                    Memory memory = memoryList.get(memoryIndex);
+                suitMaxMemortindex=-1;
+                suitMaxMemort=0;
+                for (int j = 0; j < memoryList.size(); j++) {
+                    System.out.print("memory:"+j+"\n");
+                    Memory memory = memoryList.get(j);
                     if (memory.getState() == 0) {
                         if (memory.getSize() > program.getSize()) {
-                            //内存大小减去程序大小如果大于最小不可分内存，则切割一块内存出来
-                            if (memory.getSize() - program.getSize() > minMemorySize) {
-                                Memory newMemory = new Memory();
-                                newMemory.setStart(memory.getStart() + program.getSize());
-                                newMemory.setSize(memory.getSize() - program.getSize());
-                                newMemory.setState(0);
-                                memory.setSize(program.getSize());
-                                memory.setState(program.getId());
-
-                                memoryList.add(memoryIndex + 1, newMemory);
-
-                            } else {
-                                memory.setState(program.getId());
+                            //查找最小合适内存
+                            if(suitMaxMemort<memory.getSize()){
+                                suitMaxMemort=memory.getSize();
+                                suitMaxMemortindex=j;
                             }
 
-                            programList.remove(i);
-
-                            didprogramList.add(program);
-                            dropList.add(i);
-                            i--;
-                            System.out.print("dropList.size---" + dropList.size() + "\n");
-                            //programList.remove(i);
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            updateMemoryTable();
-                            updateUndoProgramTable(programList, undoProgramTable);
-                            updateUndoProgramTable(didprogramList, didProgramTable);
-                            break;
                         }
                     }
-                    //
+                }
+                //内存大小减去程序大小如果大于最小不可分内存，则切割一块内存出来
+                if(suitMaxMemortindex!=-1){
+                    System.out.print("suitMinMemortindex"+suitMaxMemortindex+"\n");
+                    Memory memory=memoryList.get(suitMaxMemortindex);
+                    if (memory.getSize() - program.getSize() > minMemorySize) {
+                        Memory newMemory = new Memory();
+                        newMemory.setStart(memory.getStart() + program.getSize());
+                        newMemory.setSize(memory.getSize() - program.getSize());
+                        newMemory.setState(0);
+                        memory.setSize(program.getSize());
+                        memory.setState(program.getId());
+                        memoryList.add(suitMaxMemortindex + 1, newMemory);
+                    } else {
+                        memory.setState(program.getId());
+                    }
+
+                    programList.remove(i);
+                    didprogramList.add(program);
+                    dropList.add(i);
+                    i--;
+                    System.out.print("dropList.size---" + dropList.size() + "\n");
+                    //programList.remove(i);
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    updateMemoryTable();
+                    updateUndoProgramTable(programList, undoProgramTable);
+                    updateUndoProgramTable(didprogramList, didProgramTable);
+
                 }
 
             }
@@ -108,11 +116,10 @@ public class NFMethod extends Thread {
                 }
             }
             memoryList.get(memoryList.size() - 1).setState(0);
-            memoryIndex=0;
             updateMemoryTable();
         }
-
     }
+
     public void updateMemoryTable() {
         Vector memorycolumName = new Vector();
         Vector data = new Vector();
@@ -151,4 +158,3 @@ public class NFMethod extends Thread {
         table.setModel(model);
     }
 }
-
